@@ -7,7 +7,7 @@ library(abind)
 
 #######Creating eSet for  ALL consequences########
 mutationData_all <-
-    read_excel("data/Table S7-Variants for Analysis.xlsx", sheet = "Sheet 1")
+    read_excel("/pfs/beatAML_raw/Table S7-Variants for Analysis.xlsx", sheet = "Sheet 1")
 #to change the labid to non-numeric
 mutationData_all_labidchange <-
     paste("A", mutationData_all$labId, sep = "_")
@@ -297,7 +297,7 @@ curationCell$unique.cellid <- curationCell$cell_AML.cellid
 
 #######CREATING CURATIONDRUG########
 drugs_with_ids <-
-    read.csv("data/drugs_with_ids.csv", stringsAsFactors = F)
+    read.csv("/pfs/beatAML_raw/drugs_with_ids.csv", stringsAsFactors = F)
 curationDrug <-
     subset(
         drugs_with_ids,
@@ -331,13 +331,13 @@ drug_AML <- drug_AML[, -grep("unique.drugid", colnames(drug_AML))]
 #PROCESSING RAW DOSE RESPONSE - updated data from Jeffrey Tyner OHSU
 raw_data_pointsAML <-
     read.table(
-        "data/beataml_manuscript_raw_inhib_v2_passed_qc_ceil_100.tsv",
+        "/pfs/beatAML_raw/beataml_manuscript_raw_inhib_v2_passed_qc_ceil_100.tsv",
         sep = "\t",
         header = TRUE
     )
 #most recent panel version of cleaned up concentrations with consistent rounding from Jeffrey Tyner
 clean_conc <-
-    read.csv("data/report_1614271471952.csv", stringsAsFactors = F)#only for reference
+    read.csv("/pfs/beatAML_raw/report_1614271471952.csv", stringsAsFactors = F)#only for reference
 
 #equating dose values to ref values sent by Jeff
 #checks to see if merging values would create duplicated rows
@@ -671,7 +671,7 @@ xic50 <- as.data.frame(AUC_IC50_AML$IC50)
 xic50$id <- rownames(xic50)
 
 read_drugResponse <-
-    read_excel("data/Table S10-Drug Responses.xlsx", sheet = "Sheet 1")
+    read_excel("/pfs/beatAML_raw/Table S10-Drug Responses.xlsx", sheet = "Sheet 1")
 read_drugResponse.3 <- read_drugResponse
 read_drugResponse.3$lab_id <-
     paste("A", read_drugResponse.3$lab_id, sep = "_")
@@ -734,7 +734,7 @@ BeatAML <- PharmacoGx::PharmacoSet(
 BeatAML@annotation$notes <-
     "1. All cellid(labIDs) in the PSet have a prefix 'A_'. 2. Mutation status from mutect and varscan is concatenated by '///' in the expression matrix of each object.3. All cell and drug metadata can be found in 'cell' and 'drug' objects respectively. 4. Dose values are equated as per the additional inputs from authors. 5. Throughout the 'sensitivity' object, a unique identifier has been created by concatenating drug-sample-inhibitor_panel-run_index replicate-time for representing each experiment; these are the rownames of each sub object. 6. All raw dose and viability values are in the 'sensitivity-raw' object. 7. 'sensitivity-profiles have measures like AUC,AAC,IC50. The new data has more unique replicate sets that are summarized in published data from paper. Published IC50 and AUC values will be repeated to best accomodate the new dose response data from authors. This structure might change in the future to accomodate these data more efficiently. 8. rnaseq values are log normalized TPM values"
 BeatAML@annotation$version <- 2
-saveRDS(BeatAML, file = "data/BeatAML.rds")
+saveRDS(BeatAML, file = "/pfs/out/BeatAML.rds")
 # write.csv(BeatAML@cell$cellid, "output/cell.csv")
 # write.csv(rownames(BeatAML@drug), "output/lab.drug.csv")
 # write.csv(BeatAML@drug$drug.name, "output/dataset.drug.csv")
