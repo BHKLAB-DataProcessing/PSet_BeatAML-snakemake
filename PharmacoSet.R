@@ -7,7 +7,7 @@ library(abind)
 
 #######Creating eSet for  ALL consequences########
 mutationData_all <-
-    read_excel("/pfs/beatAML_raw/Table S7-Variants for Analysis.xlsx", sheet = "Sheet 1")
+    read_excel("/pfs/beatAML_raw/Table-S7-Variants-for-Analysis.xlsx", sheet = "Sheet 1")
 #to change the labid to non-numeric
 mutationData_all_labidchange <-
     paste("A", mutationData_all$labId, sep = "_")
@@ -212,7 +212,7 @@ stopifnot(all(rownames(rowData(new_SE_Chosen)) == rownames(fData(
 #load("~/Downloads/beatAML_SE.RData") # backed up on H4H and One drive
 # BeatAML_gene_exp_20210304 <- rnaseq_se$rnaseq
 # saveRDS(BeatAML_gene_exp_20210304, "data/BeatAML_gene_exp_20210304.rds")
-kallisto_rnaseqAML <- readRDS("data/BeatAML_gene_exp_20210304.rds")
+kallisto_rnaseqAML <- readRDS("/pfs/beatAML_raw/BeatAML_gene_exp_20210304.rds")
 rownames(colData(kallisto_rnaseqAML)) <-
     gsub("Sample_", "A_", rownames(colData(kallisto_rnaseqAML)))
 
@@ -256,7 +256,7 @@ stopifnot(all(rownames(colData(kallisto_rnaseqAML)) == colnames(assay(kallisto_r
 ########Creating cell object########
 
 mutationData_clinicalSummary <-
-    read_excel("data/Tabe S5-Clinical Summary.xlsx", sheet = "Sheet 1")
+    read_excel("/pfs/beatAML_raw/Table-S5-Clinical-Summary.xlsx", sheet = "Sheet 1")
 mutationData_clinicalSummary$LabId <-
     paste("A", mutationData_clinicalSummary$LabId, sep = "_")
 cell_AML <- as.data.frame(unique(mutationData_clinicalSummary))
@@ -265,7 +265,7 @@ colnames(cell_AML)[colnames(cell_AML) == 'LabId'] <-
 
 #adding the extra cellids from drug experiments
 read_drugResponse <-
-    read_excel("data/Table S10-Drug Responses.xlsx", sheet = "Sheet 1")
+    read_excel("/pfs/beatAML_raw/Table-S10-Drug-Responses.xlsx", sheet = "Sheet 1")
 read_drugResponse.1 <- read_drugResponse
 read_drugResponse.1$lab_id <-
     paste("A", read_drugResponse.1$lab_id, sep = "_")
@@ -671,7 +671,7 @@ xic50 <- as.data.frame(AUC_IC50_AML$IC50)
 xic50$id <- rownames(xic50)
 
 read_drugResponse <-
-    read_excel("/pfs/beatAML_raw/Table S10-Drug Responses.xlsx", sheet = "Sheet 1")
+    read_excel("/pfs/beatAML_raw/Table-S10-Drug-Responses.xlsx", sheet = "Sheet 1")
 read_drugResponse.3 <- read_drugResponse
 read_drugResponse.3$lab_id <-
     paste("A", read_drugResponse.3$lab_id, sep = "_")
