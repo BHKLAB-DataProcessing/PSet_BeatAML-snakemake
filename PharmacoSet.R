@@ -212,40 +212,57 @@ stopifnot(all(rownames(rowData(new_SE_Chosen)) == rownames(fData(
 #load("~/Downloads/beatAML_SE.RData") # backed up on H4H and One drive
 # BeatAML_gene_exp_20210304 <- rnaseq_se$rnaseq
 # saveRDS(BeatAML_gene_exp_20210304, "data/BeatAML_gene_exp_20210304.rds")
-kallisto_rnaseqAML <- readRDS("/pfs/beatAML_raw/BeatAML_gene_exp_20210304.rds")
-rownames(colData(kallisto_rnaseqAML)) <-
-    gsub("Sample_", "A_", rownames(colData(kallisto_rnaseqAML)))
+# Updated to include all rnaseq data types on Feb 8, 2022
+kallisto_rnaseq_all <- readRDS("/pfs/beatAML_raw/beatAML_SE.rds")
 
-#in id col of pdata
-kallisto_rnaseqAML$sample <-
-    gsub("Sample_", "A_", kallisto_rnaseqAML$sample)
 
-#renaming id to cellid as cellid should be present in pdata
-colnames(colData(kallisto_rnaseqAML))[colnames(colData(kallisto_rnaseqAML)) == 'sample'] <-
-    'cellid'
+fixSEAnnotations <- function(kallisto_rnaseqAML){
 
-#to unlock the object/environment
-#storageMode(kallisto_rnaseqAML) <- "environment"
-colnames(assay(kallisto_rnaseqAML)) <-
-    gsub("Sample_", "A_", colnames(assay(kallisto_rnaseqAML)))
 
-#to lock the object/environment
-#storageMode(kallisto_rnaseqAML) <- "lockedEnvironment"
+    rownames(colData(kallisto_rnaseqAML)) <-
+        gsub("Sample_", "A_", rownames(colData(kallisto_rnaseqAML)))
 
-#addind batchid
-#batchid <- NA
-#pData(kallisto_rnaseqAML)<- cbind(pData(kallisto_rnaseqAML),batchid)
+    #in id col of pdata
+    kallisto_rnaseqAML$sample <-
+        gsub("Sample_", "A_", kallisto_rnaseqAML$sample)
 
-#changing colname -gene_name to Symbol
-#colnames(fData(kallisto_rnaseqAML))[12] <- "Symbol"
-colnames(rowData(kallisto_rnaseqAML))[colnames(rowData(kallisto_rnaseqAML)) == 'gene_name'] <-
-    'Symbol'
+    #renaming id to cellid as cellid should be present in pdata
+    colnames(colData(kallisto_rnaseqAML))[colnames(colData(kallisto_rnaseqAML)) == 'sample'] <-
+        'cellid'
 
-#adding BEST
-rowData(kallisto_rnaseqAML)$BEST <- NA
+    #to unlock the object/environment
+    #storageMode(kallisto_rnaseqAML) <- "environment"
+    colnames(assay(kallisto_rnaseqAML)) <-
+        gsub("Sample_", "A_", colnames(assay(kallisto_rnaseqAML)))
 
-stopifnot(all(rownames(rowData(kallisto_rnaseqAML)) == rownames(assay(kallisto_rnaseqAML))))
-stopifnot(all(rownames(colData(kallisto_rnaseqAML)) == colnames(assay(kallisto_rnaseqAML))))
+    #to lock the object/environment
+    #storageMode(kallisto_rnaseqAML) <- "lockedEnvironment"
+
+    #addind batchid
+    #batchid <- NA
+    #pData(kallisto_rnaseqAML)<- cbind(pData(kallisto_rnaseqAML),batchid)
+
+    #changing colname -gene_name to Symbol
+    #colnames(fData(kallisto_rnaseqAML))[12] <- "Symbol"
+    colnames(rowData(kallisto_rnaseqAML))[colnames(rowData(kallisto_rnaseqAML)) == 'gene_name'] <-
+        'Symbol'
+
+    #adding BEST
+    rowData(kallisto_rnaseqAML)$BEST <- NA
+
+    stopifnot(all(rownames(rowData(kallisto_rnaseqAML)) == rownames(assay(kallisto_rnaseqAML))))
+    stopifnot(all(rownames(colData(kallisto_rnaseqAML)) == colnames(assay(kallisto_rnaseqAML))))
+
+    return(kallisto_rnaseqAML)
+
+}
+
+kallisto_rnaseq_all <- lapply(kallisto_rnaseq_all, fixSEAnnotations)
+
+
+
+kallisto_rnaseqAML <- kallisto_rnaseq_all$rnaseq
+
 #convert eset to SE
 #new_SE_rnaseq <-SummarizedExperiment::makeSummarizedExperimentFromExpressionSet(kallisto_rnaseqAML)
 
@@ -714,11 +731,10 @@ colnames(profiles_AML) <-
 BeatAML <- PharmacoGx::PharmacoSet(
     "BeatAML",
     molecularProfiles <-
-        list(
-            "rnaseq" = kallisto_rnaseqAML,
+        c(kallisto_rnaseq_all,list(
             "mutationall" = new_SE_ALL,
             "mutationchosen" = new_SE_Chosen
-        ),
+        )),
     cell <- cell_AML,
     drug <- drug_AML,
     sensitivityInfo <- info_AML,
@@ -732,7 +748,7 @@ BeatAML <- PharmacoGx::PharmacoSet(
     verify = TRUE
 )
 BeatAML@annotation$notes <-
-    "1. All cellid(labIDs) in the PSet have a prefix 'A_'. 2. Mutation status from mutect and varscan is concatenated by '///' in the expression matrix of each object.3. All cell and drug metadata can be found in 'cell' and 'drug' objects respectively. 4. Dose values are equated as per the additional inputs from authors. 5. Throughout the 'sensitivity' object, a unique identifier has been created by concatenating drug-sample-inhibitor_panel-run_index replicate-time for representing each experiment; these are the rownames of each sub object. 6. All raw dose and viability values are in the 'sensitivity-raw' object. 7. 'sensitivity-profiles have measures like AUC,AAC,IC50. The new data has more unique replicate sets that are summarized in published data from paper. Published IC50 and AUC values will be repeated to best accomodate the new dose response data from authors. This structure might change in the future to accomodate these data more efficiently. 8. rnaseq values are log normalized TPM values"
+    "1. All cellid(labIDs) in the PSet have a prefix 'A_'. 2. Mutation status from mutect and varscan is concatenated by '///' in the expression matrix of each object.3. All cell and drug metadata can be found in 'cell' and 'drug' objects respectively. 4. Dose values are equated as per the additional inputs from authors. 5. Throughout the 'sensitivity' object, a unique identifier has been created by concatenating drug-sample-inhibitor_panel-run_index replicate-time for representing each experiment; these are the rownames of each sub object. 6. All raw dose and viability values are in the 'sensitivity-raw' object. 7. 'sensitivity-profiles have measures like AUC,AAC,IC50. The new data has more unique replicate sets that are summarized in published data from paper. Published IC50 and AUC values will be repeated to best accomodate the new dose response data from authors. This structure might change in the future to accomodate these data more efficiently. 8. rnaseq and isoform values are log2(TPM+0.001) values. Counts are log2(count+1) transformed."
 BeatAML@annotation$version <- 2
 saveRDS(BeatAML, file = "/pfs/out/BeatAML.rds")
 # write.csv(BeatAML@cell$cellid, "output/cell.csv")
